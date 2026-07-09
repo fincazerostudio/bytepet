@@ -37,16 +37,14 @@ class _DeveloperSandboxState extends State<DeveloperSandbox> {
     );
   }
 
-  void action(PetActionType actionType) {
-    setState(() {
-      session.performAction(actionType);
-    });
+  Future<void> action(PetActionType actionType) async {
+    await session.performAction(actionType);
+    setState(() {});
   }
 
-  void advance(int minutes) {
-    setState(() {
-      session.advanceMinutes(minutes);
-    });
+  Future<void> advance(int minutes) async {
+    await session.advanceMinutes(minutes);
+    setState(() {});
   }
 
   Widget button(String label, VoidCallback onPressed) {
