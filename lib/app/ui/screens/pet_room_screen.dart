@@ -7,7 +7,6 @@ import '../../../game/domain/entities/pet_species.dart';
 import '../../../game/domain/rules/pet_action_type.dart';
 import '../../../game/domain/services/time_engine.dart';
 import '../developer_sandbox.dart';
-import '../widgets/pet_status_card.dart';
 import 'welcome_screen.dart';
 
 class PetRoomScreen extends StatefulWidget {
@@ -88,13 +87,31 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
     }
   }
 
-  Widget button(String label, VoidCallback onPressed) {
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: Text(label),
+  Widget actionButton(String label, PetActionType actionType) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: ElevatedButton(
+          onPressed: () => action(actionType),
+          child: Text(label),
+        ),
       ),
+    );
+  }
+
+  Widget miniStat(String label, int value) {
+    return Column(
+      children: [
+        Text(label),
+        const SizedBox(height: 4),
+        Text(
+          '$value',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
@@ -114,13 +131,8 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'sandbox') {
-                openSandbox();
-              }
-
-              if (value == 'reset') {
-                resetSave();
-              }
+              if (value == 'sandbox') openSandbox();
+              if (value == 'reset') resetSave();
             },
             itemBuilder: (context) => const [
               PopupMenuItem(
@@ -135,36 +147,74 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: SafeArea(
         child: Column(
           children: [
-            Text(
-              speciesIcon(pet.species),
-              style: const TextStyle(fontSize: 96),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+
             Text(
               pet.name,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+
             Text(
               pet.species.name.toUpperCase(),
               style: Theme.of(context).textTheme.labelLarge,
             ),
-            const SizedBox(height: 24),
-            PetStatusCard(pet: pet),
-            const SizedBox(height: 20),
-            Wrap(
-              alignment: WrapAlignment.center,
-              children: [
-                button('Feed', () => action(PetActionType.feed)),
-                button('Play', () => action(PetActionType.play)),
-                button('Sleep', () => action(PetActionType.rest)),
-                button('Clean', () => action(PetActionType.clean)),
-                button('Medicine', () => action(PetActionType.medicine)),
-              ],
+
+            const Spacer(),
+
+            Text(
+              speciesIcon(pet.species),
+              style: const TextStyle(fontSize: 120),
             ),
+
+            const Spacer(),
+
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    miniStat('Full', 100 - pet.hunger.value),
+                    miniStat('Happy', pet.happiness.value),
+                    miniStat('Energy', pet.energy.value),
+                    miniStat('Clean', pet.cleanliness.value),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      actionButton('Feed', PetActionType.feed),
+                      actionButton('Play', PetActionType.play),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      actionButton('Sleep', PetActionType.rest),
+                      actionButton('Clean', PetActionType.clean),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      actionButton('Medicine', PetActionType.medicine),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
           ],
         ),
       ),
