@@ -58,7 +58,7 @@ class PetStatusCard extends StatelessWidget {
             const SizedBox(height: 20),
 
             stat("❤️ Health", pet.health.value),
-            stat("🍖 Hunger", pet.hunger.value),
+            stat("🍖 Fullness", 100 - pet.hunger.value),
             stat("😊 Happiness", pet.happiness.value),
             stat("😴 Energy", pet.energy.value),
             stat("🧼 Cleanliness", pet.cleanliness.value),

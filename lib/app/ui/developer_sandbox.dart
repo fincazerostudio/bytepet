@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../game/application/game_session.dart';
+import '../../game/data/pet_repository.dart';
 import '../../game/domain/entities/pet.dart';
 import '../../game/domain/entities/stat.dart';
 import '../../game/domain/rules/pet_action_type.dart';
+import '../../game/domain/services/time_engine.dart';
 import 'widgets/pet_status_card.dart';
 
 class DeveloperSandbox extends StatefulWidget {
@@ -14,27 +16,51 @@ class DeveloperSandbox extends StatefulWidget {
 }
 
 class _DeveloperSandboxState extends State<DeveloperSandbox> {
+  final PetRepository repository = PetRepository();
   late GameSession session;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    loadSession();
+  }
 
+  Pet createStarterPet() {
     final now = DateTime.now();
 
-    session = GameSession(
-      pet: Pet(
-        name: 'Byte',
-        growthStage: GrowthStage.baby,
-        hunger: Stat(75),
-        happiness: Stat(90),
-        energy: Stat(85),
-        health: Stat(100),
-        cleanliness: Stat(95),
-        createdAt: now,
-        lastUpdatedAt: now,
-      ),
+    return Pet(
+      name: 'Byte',
+      growthStage: GrowthStage.baby,
+      hunger: Stat(75),
+      happiness: Stat(90),
+      energy: Stat(85),
+      health: Stat(100),
+      cleanliness: Stat(95),
+      createdAt: now,
+      lastUpdatedAt: now,
     );
+  }
+
+  Future<void> loadSession() async {
+    final savedPet = await repository.loadPet();
+    final timeEngine = TimeEngine.standard();
+
+    final pet = savedPet == null
+        ? createStarterPet()
+        : timeEngine.progress(savedPet, DateTime.now());
+
+    session = GameSession(
+      pet: pet,
+      petRepository: repository,
+      timeEngine: timeEngine,
+    );
+
+    await session.save();
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> action(PetActionType actionType) async {
@@ -44,6 +70,18 @@ class _DeveloperSandboxState extends State<DeveloperSandbox> {
 
   Future<void> advance(int minutes) async {
     await session.advanceMinutes(minutes);
+    setState(() {});
+  }
+
+  Future<void> resetPet() async {
+    session = GameSession(
+      pet: createStarterPet(),
+      petRepository: repository,
+      timeEngine: TimeEngine.standard(),
+    );
+
+    await session.save();
+
     setState(() {});
   }
 
@@ -59,6 +97,14 @@ class _DeveloperSandboxState extends State<DeveloperSandbox> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     final pet = session.pet;
 
     return Scaffold(
@@ -92,6 +138,7 @@ class _DeveloperSandboxState extends State<DeveloperSandbox> {
                 button('+15 Min', () => advance(15)),
                 button('+1 Hour', () => advance(60)),
                 button('+1 Day', () => advance(1440)),
+                button('Reset Pet', resetPet),
               ],
             ),
           ],
