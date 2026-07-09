@@ -6,7 +6,9 @@ import '../../../game/domain/entities/pet.dart';
 import '../../../game/domain/entities/pet_species.dart';
 import '../../../game/domain/rules/pet_action_type.dart';
 import '../../../game/domain/services/time_engine.dart';
+import '../developer_sandbox.dart';
 import '../widgets/pet_status_card.dart';
+import 'welcome_screen.dart';
 
 class PetRoomScreen extends StatefulWidget {
   const PetRoomScreen({super.key});
@@ -30,6 +32,10 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
     final savedPet = await repository.loadPet();
 
     if (savedPet == null) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      );
       return;
     }
 
@@ -52,6 +58,23 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
   Future<void> action(PetActionType actionType) async {
     await session.performAction(actionType);
     setState(() {});
+  }
+
+  Future<void> resetSave() async {
+    await repository.clearPet();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      (_) => false,
+    );
+  }
+
+  void openSandbox() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const DeveloperSandbox()),
+    );
   }
 
   String speciesIcon(PetSpecies species) {
@@ -88,6 +111,29 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pet Room'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'sandbox') {
+                openSandbox();
+              }
+
+              if (value == 'reset') {
+                resetSave();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'sandbox',
+                child: Text('Developer Sandbox'),
+              ),
+              PopupMenuItem(
+                value: 'reset',
+                child: Text('Reset Save'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
