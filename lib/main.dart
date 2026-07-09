@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app/ui/developer_sandbox.dart';
+import 'app/ui/screens/welcome_screen.dart';
 
 void main() {
   runApp(const BytePetApp());
@@ -26,7 +26,7 @@ class BytePetApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      home: const DeveloperSandbox(),
+      home: const WelcomeScreen(),
     );
   }
 }
