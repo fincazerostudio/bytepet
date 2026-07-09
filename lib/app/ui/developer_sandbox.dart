@@ -4,6 +4,7 @@ import '../../game/application/game_session.dart';
 import '../../game/data/pet_repository.dart';
 import '../../game/domain/entities/pet.dart';
 import '../../game/domain/entities/stat.dart';
+import '../../game/domain/entities/pet_species.dart';
 import '../../game/domain/rules/pet_action_type.dart';
 import '../../game/domain/services/time_engine.dart';
 import 'widgets/pet_status_card.dart';
@@ -31,7 +32,8 @@ class _DeveloperSandboxState extends State<DeveloperSandbox> {
 
     return Pet(
       name: 'Byte',
-      growthStage: GrowthStage.baby,
+      species: PetSpecies.cat,
+        growthStage: GrowthStage.baby,
       hunger: Stat(75),
       happiness: Stat(90),
       energy: Stat(85),

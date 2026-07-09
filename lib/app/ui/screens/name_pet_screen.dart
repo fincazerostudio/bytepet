@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../../../game/data/pet_repository.dart';
 import '../../../game/domain/entities/pet.dart';
+import '../../../game/domain/entities/pet_species.dart';
 import '../../../game/domain/entities/stat.dart';
 import '../developer_sandbox.dart';
 
 class NamePetScreen extends StatefulWidget {
   final String starterName;
   final String starterIcon;
+  final PetSpecies species;
 
   const NamePetScreen({
     super.key,
     required this.starterName,
     required this.starterIcon,
+    required this.species,
   });
 
   @override
@@ -40,6 +43,7 @@ class _NamePetScreenState extends State<NamePetScreen> {
 
     final pet = Pet(
       name: petName,
+      species: widget.species,
       growthStage: GrowthStage.baby,
       hunger: Stat(25),
       happiness: Stat(85),

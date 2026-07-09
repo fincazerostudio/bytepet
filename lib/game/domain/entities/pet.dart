@@ -1,3 +1,4 @@
+import 'pet_species.dart';
 import 'stat.dart';
 
 enum GrowthStage {
@@ -9,6 +10,7 @@ enum GrowthStage {
 
 class Pet {
   final String name;
+  final PetSpecies species;
   final GrowthStage growthStage;
 
   final Stat hunger;
@@ -22,6 +24,7 @@ class Pet {
 
   const Pet({
     required this.name,
+    required this.species,
     required this.growthStage,
     required this.hunger,
     required this.happiness,
@@ -34,6 +37,7 @@ class Pet {
 
   Pet copyWith({
     String? name,
+    PetSpecies? species,
     GrowthStage? growthStage,
     Stat? hunger,
     Stat? happiness,
@@ -45,6 +49,7 @@ class Pet {
   }) {
     return Pet(
       name: name ?? this.name,
+      species: species ?? this.species,
       growthStage: growthStage ?? this.growthStage,
       hunger: hunger ?? this.hunger,
       happiness: happiness ?? this.happiness,
