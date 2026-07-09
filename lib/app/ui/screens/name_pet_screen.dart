@@ -4,7 +4,7 @@ import '../../../game/data/pet_repository.dart';
 import '../../../game/domain/entities/pet.dart';
 import '../../../game/domain/entities/pet_species.dart';
 import '../../../game/domain/entities/stat.dart';
-import '../developer_sandbox.dart';
+import 'pet_room_screen.dart';
 
 class NamePetScreen extends StatefulWidget {
   final String starterName;
@@ -62,7 +62,7 @@ class _NamePetScreenState extends State<NamePetScreen> {
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (_) => const DeveloperSandbox(),
+        builder: (_) => const PetRoomScreen(),
       ),
       (_) => false,
     );
