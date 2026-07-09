@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../developer_sandbox.dart';
+import 'starter_pet_selection_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -9,6 +10,14 @@ class WelcomeScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const DeveloperSandbox(),
+      ),
+    );
+  }
+
+  void startNewPet(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const StarterPetSelectionScreen(),
       ),
     );
   }
@@ -33,7 +42,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () => startNewPet(context),
                 child: const Text('Start New Pet'),
               ),
               const SizedBox(height: 12),
