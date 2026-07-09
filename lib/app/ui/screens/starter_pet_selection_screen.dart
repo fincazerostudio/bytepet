@@ -1,7 +1,24 @@
 import 'package:flutter/material.dart';
 
+import 'name_pet_screen.dart';
+
 class StarterPetSelectionScreen extends StatelessWidget {
   const StarterPetSelectionScreen({super.key});
+
+  void chooseStarter(
+    BuildContext context, {
+    required String icon,
+    required String name,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => NamePetScreen(
+          starterIcon: icon,
+          starterName: name,
+        ),
+      ),
+    );
+  }
 
   Widget starterCard({
     required BuildContext context,
@@ -18,7 +35,11 @@ class StarterPetSelectionScreen extends StatelessWidget {
         title: Text(name),
         subtitle: Text(description),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: () => chooseStarter(
+          context,
+          icon: icon,
+          name: name,
+        ),
       ),
     );
   }
