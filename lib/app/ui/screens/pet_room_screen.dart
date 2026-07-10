@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../game/application/game_session.dart';
 import '../../../game/data/pet_repository.dart';
 import '../../../game/domain/entities/pet.dart';
-import '../../../game/domain/entities/pet_species.dart';
 import '../../../game/domain/rules/pet_action_type.dart';
+import '../../../game/domain/services/mood_engine.dart';
+import '../../../game/domain/services/pet_sprite_resolver.dart';
 import '../../../game/domain/services/time_engine.dart';
 import '../developer_sandbox.dart';
 import 'welcome_screen.dart';
@@ -18,8 +19,11 @@ class PetRoomScreen extends StatefulWidget {
 
 class _PetRoomScreenState extends State<PetRoomScreen> {
   final PetRepository repository = PetRepository();
+
   late GameSession session;
+
   bool isLoading = true;
+  String petReaction = '';
 
   @override
   void initState() {
@@ -32,14 +36,21 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
 
     if (savedPet == null) {
       if (!mounted) return;
+
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+        MaterialPageRoute(
+          builder: (_) => const WelcomeScreen(),
+        ),
       );
+
       return;
     }
 
     final timeEngine = TimeEngine.standard();
-    final updatedPet = timeEngine.progress(savedPet, DateTime.now());
+    final updatedPet = timeEngine.progress(
+      savedPet,
+      DateTime.now(),
+    );
 
     session = GameSession(
       pet: updatedPet,
@@ -49,14 +60,36 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
 
     await session.save();
 
+    if (!mounted) return;
+
     setState(() {
       isLoading = false;
     });
   }
 
-  Future<void> action(PetActionType actionType) async {
+  Future<void> action(
+    PetActionType actionType,
+    String reaction,
+  ) async {
     await session.performAction(actionType);
-    setState(() {});
+
+    if (!mounted) return;
+
+    setState(() {
+      petReaction = reaction;
+    });
+
+    await Future.delayed(
+      const Duration(seconds: 2),
+    );
+
+    if (!mounted) return;
+
+    if (petReaction == reaction) {
+      setState(() {
+        petReaction = '';
+      });
+    }
   }
 
   Future<void> resetSave() async {
@@ -65,53 +98,61 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
     if (!mounted) return;
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+      MaterialPageRoute(
+        builder: (_) => const WelcomeScreen(),
+      ),
       (_) => false,
     );
   }
 
   void openSandbox() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const DeveloperSandbox()),
-    );
-  }
-
-  String speciesIcon(PetSpecies species) {
-    switch (species) {
-      case PetSpecies.cat:
-        return '??';
-      case PetSpecies.fox:
-        return '??';
-      case PetSpecies.rabbit:
-        return '??';
-    }
-  }
-
-  Widget actionButton(String label, PetActionType actionType) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: ElevatedButton(
-          onPressed: () => action(actionType),
-          child: Text(label),
-        ),
+      MaterialPageRoute(
+        builder: (_) => const DeveloperSandbox(),
       ),
     );
   }
 
-  Widget miniStat(String label, int value) {
-    return Column(
-      children: [
-        Text(label),
-        const SizedBox(height: 4),
-        Text(
-          '$value',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+  Widget miniStat(
+    String label,
+    int value,
+  ) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12),
           ),
+          const SizedBox(height: 3),
+          Text(
+            '$value',
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget actionButton(
+    String label,
+    PetActionType actionType,
+    String reaction,
+  ) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: ElevatedButton(
+          onPressed: () => action(
+            actionType,
+            reaction,
+          ),
+          child: Text(label),
         ),
-      ],
+      ),
     );
   }
 
@@ -119,11 +160,14 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
     final Pet pet = session.pet;
+    final mood = MoodEngine().calculate(pet);
 
     return Scaffold(
       appBar: AppBar(
@@ -131,8 +175,13 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'sandbox') openSandbox();
-              if (value == 'reset') resetSave();
+              if (value == 'sandbox') {
+                openSandbox();
+              }
+
+              if (value == 'reset') {
+                resetSave();
+              }
             },
             itemBuilder: (context) => const [
               PopupMenuItem(
@@ -150,71 +199,210 @@ class _PetRoomScreenState extends State<PetRoomScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 20),
-
-            Text(
-              pet.name,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-
-            Text(
-              pet.species.name.toUpperCase(),
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-
-            const Spacer(),
-
-            Text(
-              speciesIcon(pet.species),
-              style: const TextStyle(fontSize: 120),
-            ),
-
-            const Spacer(),
-
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    miniStat('Full', 100 - pet.hunger.value),
-                    miniStat('Happy', pet.happiness.value),
-                    miniStat('Energy', pet.energy.value),
-                    miniStat('Clean', pet.cleanliness.value),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  Row(
-                    children: [
-                      actionButton('Feed', PetActionType.feed),
-                      actionButton('Play', PetActionType.play),
-                    ],
+                  Image.asset(
+                    'assets/rooms/homelab_room.png',
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.none,
                   ),
-                  Row(
-                    children: [
-                      actionButton('Sleep', PetActionType.rest),
-                      actionButton('Clean', PetActionType.clean),
-                    ],
+
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black26,
+                          Colors.transparent,
+                          Colors.black38,
+                        ],
+                      ),
+                    ),
                   ),
-                  Row(
-                    children: [
-                      actionButton('Medicine', PetActionType.medicine),
-                    ],
+
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    right: 16,
+                    child: Column(
+                      children: [
+                        Text(
+                          pet.name,
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 6,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          pet.species.name.toUpperCase(),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 5,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Mood: ${mood.name}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 5,
+                                color: Colors.black,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 42,
+                    child: Column(
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(
+                            milliseconds: 200,
+                          ),
+                          child: petReaction.isEmpty
+                              ? const SizedBox(
+                                  height: 42,
+                                )
+                              : Container(
+                                  key: ValueKey(
+                                    petReaction,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 9,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(
+                                      18,
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white24,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    petReaction,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        Image.asset(
+                          PetSpriteResolver.idle(
+                            pet.species,
+                          ),
+                          width: 230,
+                          height: 230,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.none,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            Container(
+              color: const Color(0xFF101014),
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                10,
+                12,
+                14,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      miniStat(
+                        'Full',
+                        100 - pet.hunger.value,
+                      ),
+                      miniStat(
+                        'Happy',
+                        pet.happiness.value,
+                      ),
+                      miniStat(
+                        'Energy',
+                        pet.energy.value,
+                      ),
+                      miniStat(
+                        'Clean',
+                        pet.cleanliness.value,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      actionButton(
+                        'Feed',
+                        PetActionType.feed,
+                        'Yum!',
+                      ),
+                      actionButton(
+                        'Play',
+                        PetActionType.play,
+                        'Again! Again!',
+                      ),
+                    ],
+                  ),
+
+                  Row(
+                    children: [
+                      actionButton(
+                        'Sleep',
+                        PetActionType.rest,
+                        'So sleepy...',
+                      ),
+                      actionButton(
+                        'Clean',
+                        PetActionType.clean,
+                        'Squeaky clean!',
+                      ),
+                    ],
+                  ),
+
+                  Row(
+                    children: [
+                      actionButton(
+                        'Medicine',
+                        PetActionType.medicine,
+                        'Yuck... but I feel better.',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

@@ -32,7 +32,10 @@ class StarterPetSelectionScreen extends StatelessWidget {
   }) {
     return Card(
       child: ListTile(
-        leading: Text(icon, style: const TextStyle(fontSize: 36)),
+        leading: Text(
+          icon,
+          style: const TextStyle(fontSize: 36),
+        ),
         title: Text(name),
         subtitle: Text(description),
         trailing: const Icon(Icons.chevron_right),
@@ -62,24 +65,24 @@ class StarterPetSelectionScreen extends StatelessWidget {
           const SizedBox(height: 20),
           starterCard(
             context: context,
-            icon: '??',
+            icon: 'CAT',
             name: 'Cat',
-            description: 'Calm, curious, and cozy.',
+            description: 'Grey fur, green eyes, and a white chest patch.',
             species: PetSpecies.cat,
           ),
           starterCard(
             context: context,
-            icon: '??',
-            name: 'Fox',
-            description: 'Playful, clever, and energetic.',
-            species: PetSpecies.fox,
+            icon: 'RP',
+            name: 'Red Panda',
+            description: 'Playful, curious, and full of mischief.',
+            species: PetSpecies.redPanda,
           ),
           starterCard(
             context: context,
-            icon: '??',
-            name: 'Rabbit',
-            description: 'Gentle, sweet, and affectionate.',
-            species: PetSpecies.rabbit,
+            icon: 'AX',
+            name: 'Axolotl',
+            description: 'Purple, aquatic, and wonderfully strange.',
+            species: PetSpecies.axolotl,
           ),
         ],
       ),

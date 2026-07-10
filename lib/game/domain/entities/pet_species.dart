@@ -1,5 +1,5 @@
 enum PetSpecies {
   cat,
-  fox,
-  rabbit,
+  redPanda,
+  axolotl,
 }
